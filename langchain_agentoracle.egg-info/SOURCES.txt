@@ -6,4 +6,5 @@ langchain_agentoracle/tool.py
 langchain_agentoracle.egg-info/PKG-INFO
 langchain_agentoracle.egg-info/SOURCES.txt
 langchain_agentoracle.egg-info/dependency_links.txt
+langchain_agentoracle.egg-info/requires.txt
 langchain_agentoracle.egg-info/top_level.txt
