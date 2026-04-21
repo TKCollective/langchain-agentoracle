@@ -4,13 +4,33 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "langchain-agentoracle"
-version = "0.1.0"
-description = "LangChain-compatible integration for AgentOracle"
+version = "0.2.1"
+description = "LangChain integration for AgentOracle — trust verification tools for AI agents"
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = [
-    "httpx>=0.27.0",
+license = { text = "MIT" }
+authors = [{ name = "TK Collective" }]
+keywords = ["langchain", "ai", "agents", "verification", "trust", "x402", "hallucination"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
+dependencies = [
+    "langchain-core>=0.2.0",
+    "pydantic>=2.0",
+    "requests>=2.31.0",
+]
+
+[project.urls]
+Homepage = "https://agentoracle.co"
+Source = "https://github.com/TKCollective/langchain-agentoracle"
+Issues = "https://github.com/TKCollective/langchain-agentoracle/issues"
 
 [tool.setuptools]
 packages = ["langchain_agentoracle"]
