@@ -16,65 +16,66 @@ pip install langchain-agentoracle
 
 ---
 
-## Quickstart
+## Quickstart — gate your agent on verified claims
 
 ```python
-from langchain_agentoracle import AgentOracleTool
-from langchain.agents import initialize_agent, AgentType
-from langchain_openai import ChatOpenAI
+from langchain_agentoracle import AgentOracleEvaluateTool
 
-llm = ChatOpenAI(model="gpt-4")
+verifier = AgentOracleEvaluateTool(min_confidence=0.8)
 
-tools = [AgentOracleTool()]
-
-agent = initialize_agent(
-    tools,
-    llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True
+agent_output = (
+    "OpenAI released GPT-4 in March 2023. "
+    "Bitcoin was invented by Elon Musk in 2009."
 )
 
-agent.run(
-    "Research the latest AI agent frameworks and verify the claims before summarizing"
-)
+report = verifier._run(content=agent_output)
+print(report)
+
+if "[REFUTED]" in report:
+    print("→ Hold — one or more claims failed verification")
+else:
+    print("→ Proceed")
 ```
 
 That's it. Your agent now verifies before acting.
 
 ---
 
-## What comes back
+## Tools
 
-```json
-{
-  "overall_confidence": 0.87,
-  "recommendation": "act",
-  "claims": [
-    {
-      "claim": "LangGraph leads agent frameworks in 2026",
-      "verdict": "supported",
-      "confidence": 0.94,
-      "evidence": "Confirmed across 4 independent sources"
-    },
-    {
-      "claim": "OpenAI acquired Anthropic in early 2026",
-      "verdict": "refuted",
-      "confidence": 0.04,
-      "correction": "Anthropic remains independent as of April 2026"
-    }
-  ]
-}
+| Tool | What it does | Cost |
+|------|--------------|------|
+| `AgentOracleEvaluateTool` | Per-claim verification — verdicts, confidence, evidence, corrections | $0.02 USDC (free in beta) |
+| `AgentOracleVerifyGateTool` | Fast PASS/FAIL binary gate | Free (beta) |
+| `AgentOraclePreviewTool` | Free truncated research preview, 10/hr | Free |
+| `AgentOracleResearchTool` | Full research with sources | $0.02 USDC |
+
+Bundle them all into an agent:
+
+```python
+from langchain_agentoracle import get_agentoracle_tools
+
+tools = get_agentoracle_tools()          # free + verify tools
+tools = get_agentoracle_tools(include_paid=True)  # add /research
 ```
 
 ---
 
-## Recommendation logic
+## What `/evaluate` returns
 
-| Score | Recommendation | What your agent should do |
-|-------|---------------|--------------------------|
-| > 0.8 | `act` | Proceed — claims verified |
-| 0.5–0.8 | `verify` | Pause — needs secondary check |
-| < 0.5 | `reject` | Discard — evidence insufficient |
+```text
+EVALUATION RESULT
+Overall confidence: 0.51
+Recommendation: ACT
+Claims found: 3 | Supported: 2 | Refuted: 1 | Unverifiable: 0
+Sources used: sonar, sonar-pro, adversarial, gemma-4
+
+CLAIMS:
+  ✓ [SUPPORTED] (1.00) OpenAI released GPT-4 in March 2023
+  ✗ [REFUTED] (0.83) Bitcoin was invented by Elon Musk in 2009
+     Correction: Bitcoin was invented by the pseudonymous Satoshi Nakamoto.
+  ✓ [SUPPORTED] (1.00) The Eiffel Tower is located in Paris, France
+```
 
 ---
 
@@ -83,7 +84,7 @@ That's it. Your agent now verifies before acting.
 Every evaluation runs through 4 independent sources in parallel:
 
 1. **Sonar** — real-time web research
-2. **Sonar Pro** — deep multi-step analysis  
+2. **Sonar Pro** — deep multi-step analysis
 3. **Adversarial** — actively tries to disprove the claim
 4. **Gemma 4** — claim decomposition and confidence calibration
 
@@ -99,7 +100,7 @@ curl -X POST https://agentoracle.co/preview \
   -d '{"query": "OpenAI acquired Anthropic in 2026"}'
 ```
 
-20 free requests per hour. No wallet, no API key, no account.
+10 free previews per hour. No wallet, no API key, no account.
 
 ---
 
@@ -108,10 +109,17 @@ curl -X POST https://agentoracle.co/preview \
 | Endpoint | Price | What it does |
 |----------|-------|-------------|
 | `/preview` | Free | Truncated results, no payment needed |
-| `/evaluate` | $0.01/claim | Full per-claim verification + verdicts |
-| `/research` | $0.02/query | Real-time research + verification |
+| `/verify-gate` | Free (beta) | Fast pass/fail confidence gate |
+| `/evaluate` | $0.02 USDC | Per-claim verification + verdicts |
+| `/research` | $0.02 USDC | Real-time research + verification |
 
 Payments via [x402 protocol](https://x402.org) — USDC on Base, SKALE (gasless), or Stellar. No subscriptions. No minimums. No API keys.
+
+---
+
+## Compatibility
+
+- `AgentOracleTool` (v0.1 name) is kept as an alias of `AgentOraclePreviewTool` for backwards compatibility. New code should use the named tools above.
 
 ---
 
